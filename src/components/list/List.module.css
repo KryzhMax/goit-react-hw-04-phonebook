@@ -1,0 +1,17 @@
+.list {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.delBtn {
+  max-width: 120px;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}

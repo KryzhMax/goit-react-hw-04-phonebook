@@ -1,0 +1,9 @@
+.form {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formButton {
+  max-width: 120px;
+}
