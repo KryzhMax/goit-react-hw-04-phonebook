@@ -1,88 +1,57 @@
-import React, { Component } from 'react';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import Section from './section/Section';
-import { ContactForm } from './form/ContactForm ';
-import { Filter } from './list/List';
-import { nanoid } from 'nanoid';
+import { useState, useEffect } from "react";
+import { Notify } from "notiflix/build/notiflix-notify-aio";
+import Section from "./section/Section";
+import { ContactForm } from "./form/ContactForm ";
+import { Filter } from "./list/List";
+import { nanoid } from "nanoid";
 
-export class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
+export const App = () => {
+  const [contacts, setContacts] = useState(
+    JSON.parse(localStorage.getItem("contacts")) || []
+  );
+  const [filter, setFilter] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem("contacts", JSON.stringify(contacts));
+  }, [contacts]);
+
+  const availableContact = (name) => {
+    return contacts.find((item) => {
+      return item.name.toLowerCase() === name.toLowerCase();
+    });
   };
 
-  componentDidMount() {
-    const savedContacts = localStorage.getItem('contacts');
-    if (savedContacts) {
-      this.setState({ contacts: JSON.parse(savedContacts) });
+  const addContact = (newContact) => {
+    if (availableContact(newContact.name)) {
+      return Notify.failure("This contact already exists");
     }
-  }
-
-  componentDidUpdate(_, prevState) {
-    const { contacts } = this.state;
-    // console.log(prevState.contacts);
-    // console.log(contacts);
-    if (prevState.contacts !== contacts) {
-      localStorage.setItem('contacts', JSON.stringify(contacts));
-    }
-  }
-
-  availableContact = name => {
-    const { contacts } = this.state;
-    return contacts.find(
-      item => item.name.toLowerCase() === name.toLowerCase()
-    );
+    setContacts((prev) => [...prev, { ...newContact, id: nanoid() }]);
   };
 
-  addContact = newContact => {
-    if (this.availableContact(newContact.name)) {
-      return Notify.failure('This contact already exists');
-    }
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, { ...newContact, id: nanoid() }],
-    }));
+  const onDelete = (id) => {
+    setContacts((prev) => prev.filter((item) => item.id !== id));
   };
 
-  onDelete = id => {
-    // console.log(id);
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(item => item.id !== id),
-    }));
+  const onFilter = (value) => {
+    setFilter(value.trim());
   };
 
-  onFilter = value => {
-    // console.log(value);
-    this.setState({ filter: value.trim() });
+  const filteredContacts = () => {
+    return contacts.filter((item) => item.name.toLowerCase().includes(filter));
   };
 
-  filteredContacts = () => {
-    // console.log(this.state.contacts);
-    const unfilteredContacts = this.state.contacts;
-    const normalizedFilter = this.state.filter.toLowerCase();
-    return unfilteredContacts.filter(item =>
-      item.name.toLowerCase().includes(normalizedFilter)
-    );
-  };
-
-  render() {
-    return (
-      <div>
-        <Section title="Phonebook">
-          <ContactForm callback={this.addContact} />
-        </Section>
-        <Section title="Contacts">
-          <Filter
-            onHandleFilter={this.onFilter}
-            contacts={this.filteredContacts()}
-            onDeleteHandler={this.onDelete}
-          />
-        </Section>
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      <Section title="Phonebook">
+        <ContactForm callback={addContact} />
+      </Section>
+      <Section title="Contacts">
+        <Filter
+          onHandleFilter={onFilter}
+          contacts={filteredContacts()}
+          onDeleteHandler={onDelete}
+        />
+      </Section>
+    </div>
+  );
+};
